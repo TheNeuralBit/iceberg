@@ -52,26 +52,28 @@ public class TableTestBase {
   // Schema passed to create tables
   public static final Schema SCHEMA =
       new Schema(
-          required(3, "id", Types.IntegerType.get()), required(4, "data", Types.StringType.get()));
+          required(3, "id", Types.IntegerType.get()),
+          required(4, "data", Types.StringType.get()),
+          required(5, "fixed", Types.FixedType.ofLength(4)));
 
   protected static final int BUCKETS_NUMBER = 16;
 
   // Partition spec used to create tables
   public static final PartitionSpec SPEC =
-      PartitionSpec.builderFor(SCHEMA).bucket("data", BUCKETS_NUMBER).build();
+      PartitionSpec.builderFor(SCHEMA).bucket("data", BUCKETS_NUMBER).identity("fixed").build();
 
   static final DataFile FILE_A =
       DataFiles.builder(SPEC)
           .withPath("/path/to/data-a.parquet")
           .withFileSizeInBytes(10)
-          .withPartitionPath("data_bucket=0") // easy way to set partition data for now
+          .withPartitionPath("data_bucket=0/fixed=abcd") // easy way to set partition data for now
           .withRecordCount(1)
           .build();
   static final DataFile FILE_A2 =
       DataFiles.builder(SPEC)
           .withPath("/path/to/data-a-2.parquet")
           .withFileSizeInBytes(10)
-          .withPartitionPath("data_bucket=0") // easy way to set partition data for now
+          .withPartitionPath("data_bucket=0/fixed=abcd") // easy way to set partition data for now
           .withRecordCount(1)
           .build();
   static final DeleteFile FILE_A_DELETES =
@@ -79,7 +81,7 @@ public class TableTestBase {
           .ofPositionDeletes()
           .withPath("/path/to/data-a-deletes.parquet")
           .withFileSizeInBytes(10)
-          .withPartitionPath("data_bucket=0") // easy way to set partition data for now
+          .withPartitionPath("data_bucket=0/fixed=abcd") // easy way to set partition data for now
           .withRecordCount(1)
           .build();
   // Equality delete files.
@@ -88,14 +90,14 @@ public class TableTestBase {
           .ofEqualityDeletes(1)
           .withPath("/path/to/data-a2-deletes.parquet")
           .withFileSizeInBytes(10)
-          .withPartitionPath("data_bucket=0")
+          .withPartitionPath("data_bucket=0/fixed=abcd") // easy way to set partition data for now
           .withRecordCount(1)
           .build();
   static final DataFile FILE_B =
       DataFiles.builder(SPEC)
           .withPath("/path/to/data-b.parquet")
           .withFileSizeInBytes(10)
-          .withPartitionPath("data_bucket=1") // easy way to set partition data for now
+          .withPartitionPath("data_bucket=1/fixed=abcd") // easy way to set partition data for now
           .withRecordCount(1)
           .withSplitOffsets(ImmutableList.of(1L))
           .build();
@@ -104,14 +106,14 @@ public class TableTestBase {
           .ofPositionDeletes()
           .withPath("/path/to/data-b-deletes.parquet")
           .withFileSizeInBytes(10)
-          .withPartitionPath("data_bucket=1") // easy way to set partition data for now
+          .withPartitionPath("data_bucket=1/fixed=abcd") // easy way to set partition data for now
           .withRecordCount(1)
           .build();
   static final DataFile FILE_C =
       DataFiles.builder(SPEC)
           .withPath("/path/to/data-c.parquet")
           .withFileSizeInBytes(10)
-          .withPartitionPath("data_bucket=2") // easy way to set partition data for now
+          .withPartitionPath("data_bucket=2/fixed=abcd") // easy way to set partition data for now
           .withRecordCount(1)
           .withSplitOffsets(ImmutableList.of(2L, 8L))
           .build();
@@ -120,14 +122,14 @@ public class TableTestBase {
           .ofEqualityDeletes(1)
           .withPath("/path/to/data-c-deletes.parquet")
           .withFileSizeInBytes(10)
-          .withPartitionPath("data_bucket=2") // easy way to set partition data for now
+          .withPartitionPath("data_bucket=2/fixed=abcd") // easy way to set partition data for now
           .withRecordCount(1)
           .build();
   static final DataFile FILE_D =
       DataFiles.builder(SPEC)
           .withPath("/path/to/data-d.parquet")
           .withFileSizeInBytes(10)
-          .withPartitionPath("data_bucket=3") // easy way to set partition data for now
+          .withPartitionPath("data_bucket=3/fixed=abcd") // easy way to set partition data for now
           .withRecordCount(1)
           .withSplitOffsets(ImmutableList.of(0L, 3L, 6L))
           .build();
@@ -136,7 +138,7 @@ public class TableTestBase {
           .ofEqualityDeletes(1)
           .withPath("/path/to/data-d-deletes.parquet")
           .withFileSizeInBytes(10)
-          .withPartitionPath("data_bucket=3") // easy way to set partition data for now
+          .withPartitionPath("data_bucket=3/fixed=abcd") // easy way to set partition data for now
           .withRecordCount(1)
           .build();
   static final DataFile FILE_WITH_STATS =

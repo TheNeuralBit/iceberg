@@ -21,6 +21,7 @@ package org.apache.iceberg;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.UUID;
 import org.apache.iceberg.ManifestEntry.Status;
@@ -84,9 +85,45 @@ public class TestManifestWriter extends TableTestBase {
     ManifestFile manifest =
         writeManifest(
             "manifest.avro",
-            manifestEntry(Status.ADDED, null, newFile(10, TestHelpers.Row.of(1))),
-            manifestEntry(Status.EXISTING, null, newFile(15, TestHelpers.Row.of(2))),
-            manifestEntry(Status.DELETED, null, newFile(2, TestHelpers.Row.of(3))));
+            manifestEntry(
+                Status.ADDED,
+                null,
+                newFile(
+                    10,
+                    makePartitionKeyForRow(
+                        TestHelpers.Row.of(
+                            1,
+                            "abc",
+                            ByteBuffer.wrap(
+                                new byte[] {
+                                  (byte) 0xaa, (byte) 0xbb, (byte) 0xcc, (byte) 0xdd
+                                }))))),
+            manifestEntry(
+                Status.EXISTING,
+                null,
+                newFile(
+                    15,
+                    makePartitionKeyForRow(
+                        TestHelpers.Row.of(
+                            2,
+                            "def",
+                            ByteBuffer.wrap(
+                                new byte[] {
+                                  (byte) 0xbb, (byte) 0xcc, (byte) 0xdd, (byte) 0xee
+                                }))))),
+            manifestEntry(
+                Status.DELETED,
+                null,
+                newFile(
+                    2,
+                    makePartitionKeyForRow(
+                        TestHelpers.Row.of(
+                            3,
+                            "ghi",
+                            ByteBuffer.wrap(
+                                new byte[] {
+                                  (byte) 0xcc, (byte) 0xdd, (byte) 0xee, (byte) 0xff
+                                }))))));
 
     List<ManifestFile.PartitionFieldSummary> partitions = manifest.partitions();
     Assert.assertEquals("Partition field summaries count should match", 1, partitions.size());
@@ -109,9 +146,16 @@ public class TestManifestWriter extends TableTestBase {
     File manifestFile = temp.newFile("manifest.avro");
     Assert.assertTrue(manifestFile.delete());
     OutputFile outputFile = table.ops().io().newOutputFile(manifestFile.getCanonicalPath());
+
     ManifestWriter<DataFile> writer =
         ManifestFiles.write(formatVersion, table.spec(), outputFile, 1L);
-    writer.add(newFile(10, TestHelpers.Row.of(1)), 1000L);
+    writer.add(
+        newFile(
+            10,
+            makePartitionKeyForRow(
+                TestHelpers.Row.of(
+                    0, "abc", ByteBuffer.wrap(new byte[] {0x11, 0x22, 0x33, 0x44})))),
+        1000L);
     writer.close();
     ManifestFile manifest = writer.toManifestFile();
     Assert.assertEquals("Manifest should have no sequence number", -1L, manifest.sequenceNumber());
@@ -126,6 +170,13 @@ public class TestManifestWriter extends TableTestBase {
           ManifestWriter.UNASSIGNED_SEQ,
           entry.fileSequenceNumber().longValue());
     }
+  }
+
+  public PartitionKey makePartitionKeyForRow(StructLike row) {
+    PartitionKey key =
+        new PartitionKey(table.ops().current().spec(), table.ops().current().schema());
+    key.partition(row);
+    return key;
   }
 
   @Test

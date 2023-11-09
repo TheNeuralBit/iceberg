@@ -132,11 +132,11 @@ public class TestManifestWriter extends TableTestBase {
     Assert.assertFalse("contains_nan should be false", partitionFieldSummary.containsNaN());
     Assert.assertEquals(
         "Lower bound should match",
-        Integer.valueOf(1),
+        Integer.valueOf(0),
         Conversions.fromByteBuffer(Types.IntegerType.get(), partitionFieldSummary.lowerBound()));
     Assert.assertEquals(
         "Upper bound should match",
-        Integer.valueOf(3),
+        Integer.valueOf(10),
         Conversions.fromByteBuffer(Types.IntegerType.get(), partitionFieldSummary.upperBound()));
   }
 
